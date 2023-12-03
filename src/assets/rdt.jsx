@@ -13,13 +13,18 @@ function Rdt1_0() {
   }
 
   async function send() {
+    const startTime = new Date(); // Capture start time before sending the message
     const newMessage = `Message${messageCount}`;
-    const updatedMessages = [...messages, { text: newMessage, status: 'sent' }];
+    const updatedMessages = [...messages, { text: newMessage, status: 'sent', time: startTime }];
     setMessages(updatedMessages);
     setMessageCount(messageCount + 1);
     setIsAnimating(true);
     await delay(1500);
    
+    const endTime = new Date(); // Capture end time upon receiving the message
+    const roundTripTime = endTime - startTime; // Calculate RTT
+    console.log(`Round Trip Time for "${newMessage}": ${roundTripTime}ms`);
+
     const updatedReceivedMessages = [...updatedMessages];
     updatedReceivedMessages[updatedReceivedMessages.length - 1].status = 'received';
     setMessages(updatedReceivedMessages);
@@ -34,7 +39,12 @@ function Rdt1_0() {
         <ul>
           {messages.map((message, index) => {
             if (message.status === 'sent') {
-              return <li key={index}>{message.text}</li>;
+              return (
+                <li key={index}>
+                  {message.text}
+                  <span> RTT: {message.time ? `${new Date() - message.time}ms` : 'Calculating...'}</span>
+                </li>
+              );
             }
             return null;
           })}
@@ -73,6 +83,15 @@ function Rdt1_0() {
           }
           return null;
         })}
+      </div>
+      <div className="log">
+        {messages.map((message, index) => (
+          <div key={index}>
+            {message.status === 'sent' && message.time && (
+              <p>{`RTT for "${message.text}": ${new Date() - message.time}ms`}</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
